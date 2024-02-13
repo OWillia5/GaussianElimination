@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaussian Elimination App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Gaussian Elimination App</h1>
+
+        <!-- Add a container for the dropdowns -->
+        <div class="dropdown-container">
+            <!-- "Select Row" dropdown -->
+            <div>
+                <label for="selectRow">Select Row:</label>
+                <select id="selectRow">
+                    <option value="" selected>None</option>
+                    <option value="0">Row 1</option>
+                    <option value="1">Row 2</option>
+                    <option value="2">Row 3</option>
+                </select>
+            </div>
+
+            <!-- "Multiply By" dropdown -->
+            <div>
+                <label for="multiplyBy">Multiply By:</label>
+                <input type="number" id="multiplyBy" placeholder="Enter multiplication factor" />
+            </div>
+
+            <!-- "Add to Row" dropdown -->
+            <div>
+                <label for="addToRow">Add to Row:</label>
+                <select id="addToRow">
+                    <option value="" selected>None</option>
+                    <option value="0">Row 1</option>
+                    <option value="1">Row 2</option>
+                    <option value="2">Row 3</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Replace the existing table with the updated one -->
+        <div id="matrixInput">
+            <div class="matrix-row">
+                <input type="text" class="matrix-input" />
+                <input type="text" class="matrix-input" />
+                <input type="text" class="matrix-input" />
+                <input type="text" class="matrix-input" />
+            </div>
+            <div class="matrix-row">
+                <input type="text" class="matrix-input" />
+                <input type="text" class="matrix-input" />
+                <input type="text" class="matrix-input" />
+                <input type="text" class="matrix-input" />
+            </div>
+            <div class="matrix-row">
+                <input type="text" class="matrix-input" />
+                <input type="text" class="matrix-input" />
+                <input type="text" class="matrix-input" />
+                <input type="text" class="matrix-input" />
+            </div>
+        </div>
+
+        <button onclick="performGaussianElimination()">Solve</button>
+        <button onclick="performOperations()">Perform</button>
+        <button onclick="undo()">Undo</button>
+        <button onclick="redo()">Redo</button>
+        <div id="result"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
