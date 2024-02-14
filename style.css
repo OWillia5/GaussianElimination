@@ -16,24 +16,29 @@ body {
 
 .dropdown-container {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     margin-bottom: 20px;
 }
 
 label,
-select {
+select,
+input[type="number"] {
     display: block;
     margin-bottom: 10px;
+    width: 100%;
 }
 
 .matrix-row {
     display: flex;
     margin-bottom: 10px;
+    flex-wrap: wrap;
 }
 
 .matrix-input {
     flex: 1;
     margin-right: 5px;
+    min-width: 50px; /* Ensure inputs do not become too small */
 }
 
 button {
@@ -42,6 +47,8 @@ button {
     color: #fff;
     border: none;
     cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
 }
 
 button:hover {
@@ -64,39 +71,27 @@ button:hover {
     text-align: center;
 }
 
-/* Add loading animation */
-@keyframes loading {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .dropdown-container {
+        flex-direction: column;
+    }
+
+    .matrix-row {
+        justify-content: center;
+    }
+
+    .matrix-input, select, input[type="number"] {
+        flex: 1 1 auto; /* Adjust input width on smaller screens */
+    }
 }
 
-.loading {
-    border: 6px solid #f3f3f3;
-    border-top: 6px solid #3498db;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    animation: loading 1s linear infinite;
+@media (max-width: 480px) {
+    .container {
+        margin: 20px;
+    }
+    
+    button {
+        font-size: 14px; /* Adjust font size for better readability on smaller screens */
+    }
 }
-
-.dropdown-container {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
-}
-
-label,
-select {
-    display: block;
-    margin-bottom: 10px;
-    width: 100%; /* Make the dropdowns fill the container */
-}
-
-#addToRow,
-#multiplyBy {
-    width: 100%;
-    padding: 8px;
-    box-sizing: border-box;
-    margin-top: 5px;
-}
-
