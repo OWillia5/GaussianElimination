@@ -205,27 +205,24 @@ function undo() {
     console.log('Undo function called'); // Log statement
     console.log('Matrix History Length Before Pop:', matrixHistory.length); // Log the length before pop
 
-    if (matrixHistory.length > 1) {
-        // Remove the last state from history
-        matrixHistory.pop();
+    if (matrixHistory.length > 0) {
+        // Clear the matrix history to reset to the initial state
+        matrixHistory = [];
 
-        console.log('Matrix History After Pop', matrixHistory); // Log the matrix history after pop
-
-        // Get the previous state
-        const previousState = matrixHistory[matrixHistory.length - 1];
-
-        console.log('Previous State', previousState); // Log the previous state
-
-        // Update the matrix with the previous state directly (bypassing setMatrixStateFromString)
+        // Clear the matrix input fields
         const rows = document.querySelectorAll('#matrixInput .matrix-row');
-        previousState.forEach((rowValues, i) => {
-            const inputs = rows[i].querySelectorAll('.matrix-input');
-            rowValues.forEach((value, j) => {
-                inputs[j].value = value.toFixed(2); // Adjust the precision as needed
+        rows.forEach(row => {
+            const inputs = row.querySelectorAll('.matrix-input');
+            inputs.forEach(input => {
+                input.value = ''; // Clear each input field
             });
         });
 
-        console.log('Updated Matrix State', getMatrixStateAsString()); // Log the updated matrix state
+        // Clear the result display area
+        const resultElement = document.getElementById('result');
+        resultElement.innerHTML = ''; // Clear the results
+        
+        console.log('Matrix and results cleared'); // Log the action of clearing the matrix and results
     }
 }
 
