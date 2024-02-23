@@ -1,118 +1,12 @@
 // Initialize matrix history array
 let matrixHistory = [];
+let currentMatrixState; // Variable to store current matrix state
+let originalMatrixState; // Variable to store original matrix state
+let undoneMatrixHistory = []; // Initialize the undone matrix history array
 
-function performGaussianElimination() {
 
-    // Get the matrix input
-    const matrixRows = [];
-    const rows = document.querySelectorAll('#matrixInput .matrix-row');
-
-    // Iterate over the rows and extract values
-    rows.forEach(row => {
-        const rowValues = [];
-        const inputFields = row.querySelectorAll('.matrix-input');
-        inputFields.forEach(input => {
-            rowValues.push(parseFloat(input.value) || 0);
-        });
-        matrixRows.push(rowValues);
-    });
-
-    // Save the initial matrix state to history
-    matrixHistory.push(getMatrixStateAsString());
-
-    // Perform Gaussian Elimination
-    const resultMatrix = gaussianElimination(matrixRows);
-
-    // Save the final matrix state to history
-    matrixHistory.push(getMatrixStateAsString());
-
-    // Display the result
-    const resultElement = document.getElementById('result');
-    resultElement.innerHTML = '<h3>Result:</h3>';
-
-    // Check if the result is a string (error message) or a matrix
-    if (typeof resultMatrix === 'string') {
-        resultElement.innerHTML += `<p style="color: red;">${resultMatrix}</p>`;
-    } else {
-        const resultMatrixDiv = document.createElement('div');
-        resultMatrixDiv.classList.add('result-matrix'); // Add a class for styling
-
-        // Iterate over the rows and columns of the result matrix
-        resultMatrix.forEach(rowValues => {
-            rowValues.forEach(value => {
-                const cell = document.createElement('div');
-                cell.textContent = value.toFixed(2);
-                resultMatrixDiv.appendChild(cell);
-            });
-        });
-
-        // Append the result matrix to the resultElement
-        resultElement.appendChild(resultMatrixDiv);
-    }
-}
-
-function gaussianElimination(matrixRows) {
-    
-    // Check if the input is a valid 3x4 matrix
-    if (matrixRows.length !== 3 || matrixRows.some(row => row.length !== 4)) {
-        return 'Invalid matrix input. Please enter a 3x4 matrix.';
-    }
-
-    // Perform Gaussian elimination
-    for (let i = 0; i < 3; i++) {
-        // Make the diagonal element 1
-        const divisor = matrixRows[i][i];
-        for (let j = i; j < 4; j++) {
-            matrixRows[i][j] /= divisor;
-        }
-
-        // Make the elements below and above the diagonal 0
-        for (let k = 0; k < 3; k++) {
-            if (k !== i) {
-                const factor = matrixRows[k][i];
-                for (let j = i; j < 4; j++) {
-                    matrixRows[k][j] -= factor * matrixRows[i][j];
-                }
-            }
-        }
-    }
-
-    // Return the result matrix
-    return matrixRows;
-}
-
-// Add event listener for the row selection dropdown
-document.getElementById('selectRow').addEventListener('change', function() {
-    // Example: Get the selected row index
-    const selectedRowIndex = this.value;
-    console.log('Selected Row:', selectedRowIndex);
-
-    // You can use the selectedRowIndex as needed in your application
-});
-
-// Populate the "Multiply By" dropdown with options from -9 to 9
-const multiplyByDropdown = document.getElementById('multiplyBy');
-
-for (let i = -9; i <= 9; i++) {
-    const option = document.createElement('option');
-    option.value = i;
-    option.textContent = i;
-    multiplyByDropdown.appendChild(option);
-}
-
-// Add event listener for the multiplication dropdown
-multiplyByDropdown.addEventListener('change', function() {
-    // Get the selected multiplication value
-    const multiplyValue = parseInt(this.value);
-
-    // Log the selected multiplication value
-    console.log('Selected Multiply By Value:', multiplyValue);
-
-    // You can use the multiplyValue as needed in your application
-});
-
+// Function to perform operations on the matrix
 function performOperations() {
-
     // Get the selected values from dropdowns and input field
     const selectedRowIndex = parseInt(document.getElementById('selectRow').value);
     const multiplyByValue = parseFloat(document.getElementById('multiplyBy').value);
@@ -132,6 +26,12 @@ function performOperations() {
     rows[selectedRowIndex].querySelectorAll('.matrix-input').forEach(input => {
         selectedRowValues.push(parseFloat(input.value) || 0);
     });
+
+    // Save the original matrix state if it's not already saved
+    if (!originalMatrixState) {
+        originalMatrixState = getMatrixStateAsString();
+        matrixHistory.push(originalMatrixState);
+    }
 
     // If Add to Row is selected, add the results to the specified row
     if (!isNaN(addToRowIndex)) {
@@ -154,7 +54,14 @@ function performOperations() {
         });
 
         // Save the current matrix state to history
-        matrixHistory.push(matrixRows.map(row => [...row]));
+        matrixHistory.push(Array.from(rows).map(row =>
+            Array.from(row.querySelectorAll('.matrix-input')).map(input =>
+                parseFloat(input.value) || 0
+            )
+        ));
+
+        // Update currentMatrixState
+        currentMatrixState = getMatrixStateAsString();
 
     } else {
         // If Add to Row is not selected, just display the results on the selected row
@@ -173,9 +80,71 @@ function performOperations() {
                 parseFloat(input.value) || 0
             )
         ));
+
+        // Update currentMatrixState
+        currentMatrixState = getMatrixStateAsString();
     }
 }
 
+// Modified undo function to support redo functionality
+function undo() {
+    console.log('Undo function called');
+    console.log('Len before pop:', matrixHistory.length);
+
+    if (matrixHistory.length > 1) {
+        // Before popping, save the last state for redo functionality
+        const lastState = matrixHistory.pop();
+        undoneMatrixHistory.push(lastState);
+
+        // Handle edge case for original matrix state
+        if (matrixHistory.length === 1) {
+            displayOriginalMatrixState();
+            console.log('Displayed original matrix state');
+        } else {
+            // Update the matrix with the previous state
+            const previousMatrixState = matrixHistory[matrixHistory.length - 1];
+            setMatrixStateFromString(matrixStateArrayToString(previousMatrixState));
+            currentMatrixState = matrixStateArrayToString(previousMatrixState);
+        }
+    } else {
+        console.log('No more states to undo');
+    }
+
+    console.log('Len after pop:', matrixHistory.length);
+}
+
+// New function to convert matrix state array to string
+function matrixStateArrayToString(matrixStateArray) {
+    return matrixStateArray.map(row => row.join(' ')).join('\n');
+}
+
+// Redo function to revert the undo operation
+function redo() {
+    console.log('Redo function called');
+
+    if (undoneMatrixHistory.length > 0) {
+        const nextState = undoneMatrixHistory.pop();
+        matrixHistory.push(nextState);
+
+        // Update the matrix with the redone state
+        setMatrixStateFromString(matrixStateArrayToString(nextState));
+        currentMatrixState = matrixStateArrayToString(nextState);
+        console.log('Matrix state redone');
+    } else {
+        console.log('No more states to redo');
+    }
+}
+
+
+// Function to display the original state of the matrix
+function displayOriginalMatrixState() {
+    // Check if originalMatrixState exists
+    if (originalMatrixState) {
+        setMatrixStateFromString(originalMatrixState);
+    }
+}
+
+// Helper function to get matrix state as string
 function getMatrixStateAsString() {
     // Get the matrix state as a string
     const rows = document.querySelectorAll('#matrixInput .matrix-row');
@@ -188,6 +157,7 @@ function getMatrixStateAsString() {
     return matrixState;
 }
 
+// Helper function to set matrix state from string
 function setMatrixStateFromString(matrixState) {
     // Set the matrix state from the string
     const rows = document.querySelectorAll('#matrixInput .matrix-row');
@@ -200,29 +170,3 @@ function setMatrixStateFromString(matrixState) {
         });
     });
 }
-
-function undo() {
-    console.log('Undo function called'); // Log statement
-    console.log('Matrix History Length Before Pop:', matrixHistory.length); // Log the length before pop
-
-    if (matrixHistory.length > 0) {
-        // Clear the matrix history to reset to the initial state
-        matrixHistory = [];
-
-        // Clear the matrix input fields
-        const rows = document.querySelectorAll('#matrixInput .matrix-row');
-        rows.forEach(row => {
-            const inputs = row.querySelectorAll('.matrix-input');
-            inputs.forEach(input => {
-                input.value = ''; // Clear each input field
-            });
-        });
-
-        // Clear the result display area
-        const resultElement = document.getElementById('result');
-        resultElement.innerHTML = ''; // Clear the results
-        
-        console.log('Matrix and results cleared'); // Log the action of clearing the matrix and results
-    }
-}
-
