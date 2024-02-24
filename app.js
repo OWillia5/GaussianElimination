@@ -45,7 +45,7 @@ function performGaussianElimination() {
         resultMatrix.forEach(rowValues => {
             rowValues.forEach(value => {
                 const cell = document.createElement('div');
-                cell.textContent = value.toFixed(2);
+                cell.textContent = parseInt(value).toString(); // Convert value to integer and display as string
                 resultMatrixDiv.appendChild(cell);
             });
         });
