@@ -4,7 +4,6 @@ let currentMatrixState; // Variable to store current matrix state
 let originalMatrixState; // Variable to store original matrix state
 let undoneMatrixHistory = []; // Initialize the undone matrix history array
 
-
 // Function to perform operations on the matrix
 function performOperations() {
     // Get the selected values from dropdowns and input field
@@ -134,7 +133,6 @@ function redo() {
         console.log('No more states to redo');
     }
 }
-
 
 // Function to display the original state of the matrix
 function displayOriginalMatrixState() {
