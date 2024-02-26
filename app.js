@@ -2,87 +2,7 @@
 let matrixHistory = [];
 let currentMatrixState; // Variable to store current matrix state
 let originalMatrixState; // Variable to store original matrix state
-
-function performGaussianElimination() {
-    // Get the matrix input
-    const matrixRows = [];
-    const rows = document.querySelectorAll('#matrixInput .matrix-row');
-
-    // Iterate over the rows and extract values
-    rows.forEach(row => {
-        const rowValues = [];
-        const inputFields = row.querySelectorAll('.matrix-input');
-        inputFields.forEach(input => {
-            rowValues.push(parseFloat(input.value) || 0);
-        });
-        matrixRows.push(rowValues);
-    });
-
-    // Save the original matrix state if it's not already saved
-    if (!originalMatrixState) {
-        originalMatrixState = getMatrixStateAsString();
-        matrixHistory.push(originalMatrixState);
-    }
-
-    // Perform Gaussian Elimination
-    const resultMatrix = gaussianElimination(matrixRows);
-
-    // Save the current matrix state to history
-    matrixHistory.push(getMatrixStateAsString());
-
-    // Display the result
-    const resultElement = document.getElementById('result');
-    resultElement.innerHTML = '<h3>Result:</h3>';
-
-    // Check if the result is a string (error message) or a matrix
-    if (typeof resultMatrix === 'string') {
-        resultElement.innerHTML += `<p style="color: red;">${resultMatrix}</p>`;
-    } else {
-        const resultMatrixDiv = document.createElement('div');
-        resultMatrixDiv.classList.add('result-matrix'); // Add a class for styling
-
-        // Iterate over the rows and columns of the result matrix
-        resultMatrix.forEach(rowValues => {
-            rowValues.forEach(value => {
-                const cell = document.createElement('div');
-                cell.textContent = parseInt(value).toString(); // Convert value to integer and display as string
-                resultMatrixDiv.appendChild(cell);
-            });
-        });
-
-        // Append the result matrix to the resultElement
-        resultElement.appendChild(resultMatrixDiv);
-    }
-}
-
-function gaussianElimination(matrixRows) {
-    // Check if the input is a valid 3x4 matrix
-    if (matrixRows.length !== 3 || matrixRows.some(row => row.length !== 4)) {
-        return 'Invalid matrix input. Please enter a 3x4 matrix.';
-    }
-
-    // Perform Gaussian elimination
-    for (let i = 0; i < 3; i++) {
-        // Make the diagonal element 1
-        const divisor = matrixRows[i][i];
-        for (let j = i; j < 4; j++) {
-            matrixRows[i][j] /= divisor;
-        }
-
-        // Make the elements below and above the diagonal 0
-        for (let k = 0; k < 3; k++) {
-            if (k !== i) {
-                const factor = matrixRows[k][i];
-                for (let j = i; j < 4; j++) {
-                    matrixRows[k][j] -= factor * matrixRows[i][j];
-                }
-            }
-        }
-    }
-
-    // Return the result matrix
-    return matrixRows;
-}
+let undoneMatrixHistory = []; // Initialize the undone matrix history array
 
 // Function to perform operations on the matrix
 function performOperations() {
@@ -165,46 +85,53 @@ function performOperations() {
     }
 }
 
-// Function to perform the undo operation
+// Modified undo function to support redo functionality
 function undo() {
-    console.log('Undo function called'); // Log statement
-    console.log('Len b4 pop:', matrixHistory.length); // Log the length before pop
+    console.log('Undo function called');
+    console.log('Len before pop:', matrixHistory.length);
 
-    if (matrixHistory.length <= 2) {
-        console.log('HYFR:'); 
+    if (matrixHistory.length > 1) {
+        // Before popping, save the last state for redo functionality
+        const lastState = matrixHistory.pop();
+        undoneMatrixHistory.push(lastState);
 
-        matrixHistory.pop();
-        
-        // Display original matrix state when undoing all the way to the beginning
-        displayOriginalMatrixState();
-        
-        console.log('Len after Pop:', matrixHistory.length);
+        // Handle edge case for original matrix state
+        if (matrixHistory.length === 1) {
+            displayOriginalMatrixState();
+            console.log('Displayed original matrix state');
+        } else {
+            // Update the matrix with the previous state
+            const previousMatrixState = matrixHistory[matrixHistory.length - 1];
+            setMatrixStateFromString(matrixStateArrayToString(previousMatrixState));
+            currentMatrixState = matrixStateArrayToString(previousMatrixState);
+        }
+    } else {
+        console.log('No more states to undo');
     }
-    else if (matrixHistory.length > 2) {
 
-        console.log('WTF:'); 
-        // Remove the last matrix state from the history
-        matrixHistory.pop();
+    console.log('Len after pop:', matrixHistory.length);
+}
 
-        console.log('Len after Pop:', matrixHistory.length);
+// New function to convert matrix state array to string
+function matrixStateArrayToString(matrixStateArray) {
+    return matrixStateArray.map(row => row.join(' ')).join('\n');
+}
 
-        // Get the previous matrix state
-        const previousMatrixState = matrixHistory[matrixHistory.length - 1];
+// Redo function to revert the undo operation
+function redo() {
+    console.log('Redo function called');
 
-        //console.log('Previous Matrix State:', previousMatrixState); // Log the previous matrix state
+    if (undoneMatrixHistory.length > 0) {
+        const nextState = undoneMatrixHistory.pop();
+        matrixHistory.push(nextState);
 
-        // Convert the array to string before updating the matrix
-        const matrixStateString = previousMatrixState.map(row => row.join(' ')).join('\n');
-
-        // Update the matrix with the previous state
-        setMatrixStateFromString(matrixStateString);
-
-        // Update currentMatrixState
-        currentMatrixState = matrixStateString;
-        
-        console.log('Matrix and results cleared'); // Log the action of clearing the matrix and results
-    } 
-    
+        // Update the matrix with the redone state
+        setMatrixStateFromString(matrixStateArrayToString(nextState));
+        currentMatrixState = matrixStateArrayToString(nextState);
+        console.log('Matrix state redone');
+    } else {
+        console.log('No more states to redo');
+    }
 }
 
 // Function to display the original state of the matrix
